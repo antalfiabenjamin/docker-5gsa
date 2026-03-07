@@ -1,0 +1,25 @@
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/udr.log
+    timestamp: true
+  default:
+    timestamp: false
+
+global:
+  max:
+    ue: 1024
+  parameter:
+    no_ipv6: true
+
+db_uri: mongodb://fiveg-cn-db/open5gs
+
+udr:
+  sbi:
+    server:
+      - address: fiveg-cn-udr
+        port: 7777
+    client:
+      nrf:
+        - uri: http://fiveg-cn-nrf:7777
+      scp:
+        - uri: http://fiveg-cn-scp:7777

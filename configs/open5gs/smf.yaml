@@ -1,0 +1,48 @@
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/smf.log
+    timestamp: true
+  default:
+    timestamp: false
+
+global:
+  max:
+    ue: 1024
+
+smf:
+  sbi:
+    server:
+      - address: fiveg-cn-smf
+        port: 7777
+    client:
+      nrf:
+        - uri: http://fiveg-cn-nrf:7777
+      scp:
+        - uri: http://fiveg-cn-scp:7777
+  pfcp:
+    server:
+      - address: fiveg-cn-smf
+    client:
+      upf:
+        - address: fiveg-cn-upf
+  gtpc:
+    server:
+      - address: 0.0.0.0
+  gtpu:
+    server:
+      - address: 0.0.0.0
+  metrics:
+    server:
+      - address: 0.0.0.0
+        port: 9090
+  session:
+    - subnet: 10.45.0.0/16
+      gateway: 10.45.0.1
+    - subnet: 2001:db8:cafe::/48
+      gateway: 2001:db8:cafe::1
+  dns:
+    - 8.8.8.8
+    - 8.8.4.4
+    - 2001:4860:4860::8888
+    - 2001:4860:4860::8844
+  mtu: 1400

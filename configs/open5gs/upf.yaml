@@ -1,0 +1,28 @@
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/upf.log
+    timestamp: true
+  default:
+    timestamp: false
+
+global:
+  max:
+    ue: 1024
+
+upf:
+  pfcp:
+    server:
+      - address: fiveg-cn-upf
+  gtpu:
+    server:
+      - address: 0.0.0.0
+        advertise: 10.200.0.100
+  metrics:
+    server:
+      - address: 0.0.0.0
+        port: 9090
+  session:
+    - subnet: 10.45.0.0/16
+      gateway: 10.45.0.1
+    - subnet: 2001:db8:cafe::/48
+      gateway: 2001:db8:cafe::1

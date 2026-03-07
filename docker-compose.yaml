@@ -1,0 +1,331 @@
+# =============================================================================
+# Open5GS 5G SA Core + UERANSIM Lab
+# =============================================================================
+# Network 1 (5g-cn): All core NFs
+# Network 2 (5g-ran): AMF + UPF (dual-homed) + gNB + UE
+# =============================================================================
+
+networks:
+  5g-cn:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${CN_SUBNET}
+  5g-ran:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${RAN_SUBNET}
+
+volumes:
+  mongodb_data:
+  prometheus_data:
+  grafana_data:
+
+# =============================================================================
+# Common build anchors
+# =============================================================================
+x-open5gs-common: &open5gs-common
+  build:
+    context: ./docker/open5gs
+    args:
+      OPEN5GS_VERSION: ${OPEN5GS_VERSION}
+  restart: unless-stopped
+
+x-open5gs-nf-depends: &open5gs-nf-depends
+  fiveg-cn-nrf:
+    condition: service_started
+  fiveg-cn-scp:
+    condition: service_started
+
+services:
+  # ===========================================================================
+  # Database
+  # ===========================================================================
+  fiveg-cn-db:
+    image: mongo:${MONGO_VERSION}
+    container_name: fiveg-cn-db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      5g-cn:
+    restart: unless-stopped
+
+  # ===========================================================================
+  # WebUI
+  # ===========================================================================
+  fiveg-cn-webui:
+    build:
+      context: ./docker/webui
+    container_name: fiveg-cn-webui
+    depends_on:
+      - fiveg-cn-db
+    environment:
+      - DB_URI=mongodb://fiveg-cn-db/open5gs
+      - HOSTNAME=0.0.0.0
+      - PORT=9999
+    ports:
+      - "${WEBUI_PORT}:9999"
+    networks:
+      5g-cn:
+    restart: unless-stopped
+
+  # ===========================================================================
+  # NRF - NF Repository Function
+  # ===========================================================================
+  fiveg-cn-nrf:
+    <<: *open5gs-common
+    container_name: fiveg-cn-nrf
+    command: "open5gs-nrfd -c /open5gs/install/etc/open5gs/nrf.yaml"
+    volumes:
+      - ./configs/open5gs/nrf.yaml:/open5gs/install/etc/open5gs/nrf.yaml:ro
+    depends_on:
+      - fiveg-cn-db
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # SCP - Service Communication Proxy
+  # ===========================================================================
+  fiveg-cn-scp:
+    <<: *open5gs-common
+    container_name: fiveg-cn-scp
+    command: "open5gs-scpd -c /open5gs/install/etc/open5gs/scp.yaml"
+    volumes:
+      - ./configs/open5gs/scp.yaml:/open5gs/install/etc/open5gs/scp.yaml:ro
+    depends_on:
+      - fiveg-cn-nrf
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # AMF - Access and Mobility Management Function
+  # ===========================================================================
+  fiveg-cn-amf:
+    <<: *open5gs-common
+    container_name: fiveg-cn-amf
+    command: "open5gs-amfd -c /open5gs/install/etc/open5gs/amf.yaml"
+    volumes:
+      - ./configs/open5gs/amf.yaml:/open5gs/install/etc/open5gs/amf.yaml:ro
+    depends_on:
+      <<: *open5gs-nf-depends
+    networks:
+      5g-cn:
+      5g-ran:
+        ipv4_address: 10.200.0.200
+
+  # ===========================================================================
+  # SMF - Session Management Function
+  # ===========================================================================
+  fiveg-cn-smf:
+    <<: *open5gs-common
+    container_name: fiveg-cn-smf
+    command: "open5gs-smfd -c /open5gs/install/etc/open5gs/smf.yaml"
+    volumes:
+      - ./configs/open5gs/smf.yaml:/open5gs/install/etc/open5gs/smf.yaml:ro
+    depends_on:
+      <<: *open5gs-nf-depends
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # UPF - User Plane Function
+  # ===========================================================================
+  fiveg-cn-upf:
+    <<: *open5gs-common
+    container_name: fiveg-cn-upf
+    entrypoint: /bin/bash
+    command: /scripts/upf-entrypoint.sh
+    volumes:
+      - ./configs/open5gs/upf.yaml:/open5gs/install/etc/open5gs/upf.yaml:ro
+      - ./scripts/upf-entrypoint.sh:/scripts/upf-entrypoint.sh:ro
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
+    depends_on:
+      <<: *open5gs-nf-depends
+    networks:
+      5g-cn:
+      5g-ran:
+        ipv4_address: 10.200.0.100
+
+  # ===========================================================================
+  # AUSF - Authentication Server Function
+  # ===========================================================================
+  fiveg-cn-ausf:
+    <<: *open5gs-common
+    container_name: fiveg-cn-ausf
+    command: "open5gs-ausfd -c /open5gs/install/etc/open5gs/ausf.yaml"
+    volumes:
+      - ./configs/open5gs/ausf.yaml:/open5gs/install/etc/open5gs/ausf.yaml:ro
+    depends_on:
+      <<: *open5gs-nf-depends
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # UDM - Unified Data Management
+  # ===========================================================================
+  fiveg-cn-udm:
+    <<: *open5gs-common
+    container_name: fiveg-cn-udm
+    command: "open5gs-udmd -c /open5gs/install/etc/open5gs/udm.yaml"
+    volumes:
+      - ./configs/open5gs/udm.yaml:/open5gs/install/etc/open5gs/udm.yaml:ro
+    depends_on:
+      <<: *open5gs-nf-depends
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # UDR - Unified Data Repository
+  # ===========================================================================
+  fiveg-cn-udr:
+    <<: *open5gs-common
+    container_name: fiveg-cn-udr
+    command: "open5gs-udrd -c /open5gs/install/etc/open5gs/udr.yaml"
+    volumes:
+      - ./configs/open5gs/udr.yaml:/open5gs/install/etc/open5gs/udr.yaml:ro
+    depends_on:
+      <<: *open5gs-nf-depends
+      fiveg-cn-db:
+        condition: service_started
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # PCF - Policy and Charging Function
+  # ===========================================================================
+  fiveg-cn-pcf:
+    <<: *open5gs-common
+    container_name: fiveg-cn-pcf
+    command: "open5gs-pcfd -c /open5gs/install/etc/open5gs/pcf.yaml"
+    volumes:
+      - ./configs/open5gs/pcf.yaml:/open5gs/install/etc/open5gs/pcf.yaml:ro
+    depends_on:
+      <<: *open5gs-nf-depends
+      fiveg-cn-db:
+        condition: service_started
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # NSSF - Network Slice Selection Function
+  # ===========================================================================
+  fiveg-cn-nssf:
+    <<: *open5gs-common
+    container_name: fiveg-cn-nssf
+    command: "open5gs-nssfd -c /open5gs/install/etc/open5gs/nssf.yaml"
+    volumes:
+      - ./configs/open5gs/nssf.yaml:/open5gs/install/etc/open5gs/nssf.yaml:ro
+    depends_on:
+      <<: *open5gs-nf-depends
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # BSF - Binding Support Function
+  # ===========================================================================
+  fiveg-cn-bsf:
+    <<: *open5gs-common
+    container_name: fiveg-cn-bsf
+    command: "open5gs-bsfd -c /open5gs/install/etc/open5gs/bsf.yaml"
+    volumes:
+      - ./configs/open5gs/bsf.yaml:/open5gs/install/etc/open5gs/bsf.yaml:ro
+    depends_on:
+      <<: *open5gs-nf-depends
+    networks:
+      5g-cn:
+
+  # ===========================================================================
+  # SEPP - Security Edge Protection Proxy
+  # ===========================================================================
+  # fiveg-cn-sepp:
+  #   <<: *open5gs-common
+  #   container_name: fiveg-cn-sepp
+  #   command: "open5gs-seppd -c /open5gs/install/etc/open5gs/sepp.yaml"
+  #   volumes:
+  #     - ./configs/open5gs/sepp.yaml:/open5gs/install/etc/open5gs/sepp.yaml:ro
+  #   depends_on:
+  #     <<: *open5gs-nf-depends
+  #   networks:
+  #     5g-cn:
+
+  # ===========================================================================
+  # Monitoring - Prometheus + Grafana
+  # ===========================================================================
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_VERSION}
+    container_name: fiveg-cn-monitoring-prometheus
+    volumes:
+      - ./configs/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9091:9090"
+    networks:
+      5g-cn:
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana-oss:${GRAFANA_VERSION}
+    container_name: fiveg-cn-monitoring-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./configs/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      5g-cn:
+    restart: unless-stopped
+
+  # ===========================================================================
+  # 5G RAN - gNodeB
+  # ===========================================================================
+  fiveg-ran-gnb:
+    build:
+      context: ./docker/ueransim
+      args:
+        UERANSIM_VERSION: ${UERANSIM_VERSION}
+    container_name: fiveg-ran-gnb
+    command: ["nr-gnb", "-c", "/ueransim/config/gnb.yaml"]
+    volumes:
+      - ./configs/ueransim/gnb.yaml:/ueransim/config/gnb.yaml:ro
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - fiveg-cn-amf
+      - fiveg-cn-upf
+    networks:
+      5g-ran:
+    restart: unless-stopped
+
+  # ===========================================================================
+  # 5G RAN - UE
+  # ===========================================================================
+  fiveg-ran-ue:
+    build:
+      context: ./docker/ueransim
+      args:
+        UERANSIM_VERSION: ${UERANSIM_VERSION}
+    container_name: fiveg-ran-ue
+    command: ["nr-ue", "-c", "/ueransim/config/ue.yaml"]
+    volumes:
+      - ./configs/ueransim/ue.yaml:/ueransim/config/ue.yaml:ro
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    depends_on:
+      - fiveg-ran-gnb
+    networks:
+      5g-ran:
+    restart: unless-stopped

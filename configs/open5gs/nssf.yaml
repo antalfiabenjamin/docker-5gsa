@@ -1,0 +1,25 @@
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/nssf.log
+    timestamp: true
+  default:
+    timestamp: false
+
+global:
+  max:
+    ue: 1024
+
+nssf:
+  sbi:
+    server:
+      - address: fiveg-cn-nssf
+        port: 7777
+    client:
+      nrf:
+        - uri: http://fiveg-cn-nrf:7777
+      scp:
+        - uri: http://fiveg-cn-scp:7777
+      nsi:
+        - uri: http://fiveg-cn-nrf:7777
+          s_nssai:
+            sst: 1

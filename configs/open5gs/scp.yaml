@@ -1,0 +1,19 @@
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/scp.log
+    timestamp: true
+  default:
+    timestamp: false
+
+global:
+  max:
+    ue: 1024
+
+scp:
+  sbi:
+    server:
+      - address: fiveg-cn-scp
+        port: 7777
+    client:
+      nrf:
+        - uri: http://fiveg-cn-nrf:7777
