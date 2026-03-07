@@ -5,9 +5,9 @@ nci: '0x000000010'
 idLength: 32
 tac: 1
 
-linkIp: fiveg-ran-gnb
-ngapIp: fiveg-ran-gnb
-gtpIp: fiveg-ran-gnb
+linkIp: 0.0.0.0
+ngapIp: 0.0.0.0
+gtpIp: 0.0.0.0
 
 # AMF address as seen from the RAN network
 amfConfigs:
