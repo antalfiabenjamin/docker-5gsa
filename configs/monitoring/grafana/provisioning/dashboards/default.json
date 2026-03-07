@@ -176,6 +176,9 @@
             },
             "insertNulls": false,
             "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
@@ -222,6 +225,21 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "{__name__=\"fivegs_amffunction_rm_reginitreq\", instance=\"fiveg-cn-amf:9090\", job=\"open5gs-amf\"}"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
@@ -249,7 +267,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "rate(fivegs_amffunction_rm_reginitreq[5m])",
+          "expr": "fivegs_amffunction_rm_reginitreq",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -564,7 +582,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "rate(fivegs_amffunction_rm_reginitsucc[5m])",
+          "expr": "fivegs_amffunction_rm_reginitsucc",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -647,6 +665,21 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "{cause=\"90\", instance=\"fiveg-cn-amf:9090\", job=\"open5gs-amf\"}"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
           }
         ]
       },
@@ -674,7 +707,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "rate(fivegs_amffunction_rm_reginitfail[5m])",
+          "expr": "fivegs_amffunction_rm_reginitfail",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -699,6 +732,6 @@
   "timezone": "browser",
   "title": "Default",
   "uid": "adwgx4t",
-  "version": 12,
+  "version": 15,
   "weekStart": ""
 }
