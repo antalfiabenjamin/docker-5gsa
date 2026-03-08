@@ -252,6 +252,7 @@ services:
       - fiveg-cn-upf
     networks:
       5g-ran:
+        ipv4_address: 10.200.0.2
     restart: unless-stopped
 
   fiveg-ran-ue:

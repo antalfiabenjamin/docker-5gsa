@@ -111,47 +111,6 @@ docker compose down            # Stop and remove containers
 docker compose down -v         # Also remove volumes (wipes DB)
 ```
 
-## Project Structure
-
-```
-open5gs-lab/
-├── .env                           # Version pins, subnet config
-├── docker-compose.yaml            # Full stack definition
-├── docker/
-│   ├── open5gs/
-│   │   └── Dockerfile             # Multi-stage Open5GS build
-│   └── ueransim/
-│       └── Dockerfile             # Multi-stage UERANSIM build
-├── configs/
-│   ├── open5gs/                   # Per-NF YAML configs
-│   │   ├── nrf.yaml
-│   │   ├── scp.yaml
-│   │   ├── amf.yaml
-│   │   ├── smf.yaml
-│   │   ├── upf.yaml
-│   │   ├── ausf.yaml
-│   │   ├── udm.yaml
-│   │   ├── udr.yaml
-│   │   ├── pcf.yaml
-│   │   ├── nssf.yaml
-│   │   ├── bsf.yaml
-│   │   └── sepp.yaml
-│   ├── ueransim/
-│   │   ├── gnb.yaml
-│   │   └── ue.yaml
-│   └── monitoring/
-│       ├── prometheus/
-│       │   └── prometheus.yml
-│       └── grafana/
-│           └── provisioning/
-│               ├── dashboards/
-│               │   └── dashboards.yml
-│               └── datasources/
-│                   └── prometheus.yml
-└── scripts/
-    ├── upf-entrypoint.sh          # TUN + NAT setup for UPF
-```
-
 ## Troubleshooting
 
 **gNB fails SCTP connection to AMF**: Verify AMF is up and both containers share the `5g-ran` network. Check `docker logs fiveg-cn-amf` for NGAP bind errors.
