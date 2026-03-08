@@ -6,7 +6,7 @@ A fully containerized 5G Standalone lab built from source using multi-stage Dock
 
 ```
 ┌───────────────────────────────────────────────────────────────────┐
-│  Network 1: 5g-cn (10.100.0.0/24) - Core Network                  │
+│  Network 1: 5g-cn (Dualstack) - Core Network                      │
 │                                                                   │
 │  ┌─────┐ ┌─────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌─────┐ ┌──────┐      │
 │  │ NRF │ │ SCP │ │ AUSF │ │ UDM  │ │ UDR  │ │ PCF │ │ NSSF │      │
@@ -24,7 +24,7 @@ A fully containerized 5G Standalone lab built from source using multi-stage Dock
 └────────┼────────────────┼─────────────────────────────────────────┘
          │                │
 ┌────────┼────────────────┼─────────────────────────────────────────┐
-│  Network 2: 5g-ran (10.200.0.0/24) - RAN                          │
+│  Network 2: 5g-ran (Dualstack) - RAN                              │
 │        │                │                                         │
 │  ┌─────┴───┐      ┌─────┴───┐                                     │
 │  │ AMF     │      │ UPF     │                                     │

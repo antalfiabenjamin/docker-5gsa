@@ -1,30 +1,24 @@
-# =============================================================================
-# Open5GS 5G SA Core + UERANSIM Lab
-# =============================================================================
-# Network 1 (5g-cn): All core NFs
-# Network 2 (5g-ran): AMF + UPF (dual-homed) + gNB + UE
-# =============================================================================
-
 networks:
   5g-cn:
     driver: bridge
+    enable_ipv6: true
     ipam:
       config:
         - subnet: ${CN_SUBNET}
+        - subnet: ${CN_IPV6_SUBNET}
   5g-ran:
     driver: bridge
+    enable_ipv6: true
     ipam:
       config:
         - subnet: ${RAN_SUBNET}
+        - subnet: ${RAN_IPV6_SUBNET}
 
 volumes:
   mongodb_data:
   prometheus_data:
   grafana_data:
 
-# =============================================================================
-# Common build anchors
-# =============================================================================
 x-open5gs-common: &open5gs-common
   build:
     context: ./docker/open5gs
@@ -39,9 +33,6 @@ x-open5gs-nf-depends: &open5gs-nf-depends
     condition: service_started
 
 services:
-  # ===========================================================================
-  # Database
-  # ===========================================================================
   fiveg-cn-db:
     image: mongo:${MONGO_VERSION}
     container_name: fiveg-cn-db
@@ -51,9 +42,6 @@ services:
       5g-cn:
     restart: unless-stopped
 
-  # ===========================================================================
-  # WebUI
-  # ===========================================================================
   fiveg-cn-webui:
     build:
       context: ./docker/webui
@@ -70,9 +58,6 @@ services:
       5g-cn:
     restart: unless-stopped
 
-  # ===========================================================================
-  # NRF - NF Repository Function
-  # ===========================================================================
   fiveg-cn-nrf:
     <<: *open5gs-common
     container_name: fiveg-cn-nrf
@@ -84,9 +69,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # SCP - Service Communication Proxy
-  # ===========================================================================
   fiveg-cn-scp:
     <<: *open5gs-common
     container_name: fiveg-cn-scp
@@ -98,9 +80,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # AMF - Access and Mobility Management Function
-  # ===========================================================================
   fiveg-cn-amf:
     <<: *open5gs-common
     container_name: fiveg-cn-amf
@@ -114,9 +93,6 @@ services:
       5g-ran:
         ipv4_address: 10.200.0.200
 
-  # ===========================================================================
-  # SMF - Session Management Function
-  # ===========================================================================
   fiveg-cn-smf:
     <<: *open5gs-common
     container_name: fiveg-cn-smf
@@ -128,9 +104,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # UPF - User Plane Function
-  # ===========================================================================
   fiveg-cn-upf:
     <<: *open5gs-common
     container_name: fiveg-cn-upf
@@ -153,9 +126,6 @@ services:
       5g-ran:
         ipv4_address: 10.200.0.100
 
-  # ===========================================================================
-  # AUSF - Authentication Server Function
-  # ===========================================================================
   fiveg-cn-ausf:
     <<: *open5gs-common
     container_name: fiveg-cn-ausf
@@ -167,9 +137,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # UDM - Unified Data Management
-  # ===========================================================================
   fiveg-cn-udm:
     <<: *open5gs-common
     container_name: fiveg-cn-udm
@@ -181,9 +148,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # UDR - Unified Data Repository
-  # ===========================================================================
   fiveg-cn-udr:
     <<: *open5gs-common
     container_name: fiveg-cn-udr
@@ -197,9 +161,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # PCF - Policy and Charging Function
-  # ===========================================================================
   fiveg-cn-pcf:
     <<: *open5gs-common
     container_name: fiveg-cn-pcf
@@ -213,9 +174,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # NSSF - Network Slice Selection Function
-  # ===========================================================================
   fiveg-cn-nssf:
     <<: *open5gs-common
     container_name: fiveg-cn-nssf
@@ -227,9 +185,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # BSF - Binding Support Function
-  # ===========================================================================
   fiveg-cn-bsf:
     <<: *open5gs-common
     container_name: fiveg-cn-bsf
@@ -241,9 +196,6 @@ services:
     networks:
       5g-cn:
 
-  # ===========================================================================
-  # SEPP - Security Edge Protection Proxy
-  # ===========================================================================
   # fiveg-cn-sepp:
   #   <<: *open5gs-common
   #   container_name: fiveg-cn-sepp
@@ -255,9 +207,6 @@ services:
   #   networks:
   #     5g-cn:
 
-  # ===========================================================================
-  # Monitoring - Prometheus + Grafana
-  # ===========================================================================
   prometheus:
     image: prom/prometheus:${PROMETHEUS_VERSION}
     container_name: fiveg-cn-monitoring-prometheus
@@ -287,9 +236,6 @@ services:
       5g-cn:
     restart: unless-stopped
 
-  # ===========================================================================
-  # 5G RAN - gNodeB
-  # ===========================================================================
   fiveg-ran-gnb:
     build:
       context: ./docker/ueransim
@@ -308,9 +254,6 @@ services:
       5g-ran:
     restart: unless-stopped
 
-  # ===========================================================================
-  # 5G RAN - UE
-  # ===========================================================================
   fiveg-ran-ue:
     build:
       context: ./docker/ueransim

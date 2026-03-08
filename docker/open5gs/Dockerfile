@@ -1,6 +1,4 @@
-########################################
-# Stage 1: Build Open5GS from source
-########################################
+# Stage 1: Build 
 FROM ubuntu:22.04 AS builder
 
 ARG OPEN5GS_VERSION=v2.7.5
@@ -31,9 +29,7 @@ RUN meson build \
     ninja -C build && \
     cd build && ninja install
 
-########################################
-# Stage 2: Runtime image
-########################################
+# Stage 2: Runtime 
 FROM ubuntu:22.04 AS runtime
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -47,7 +43,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Install libidn runtime
 RUN apt-get update && \
     if apt-cache show libidn12 > /dev/null 2>&1; then \
         apt-get install -y --no-install-recommends libidn12; \
@@ -56,14 +51,10 @@ RUN apt-get update && \
     fi && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy built artifacts from builder
-COPY --from=builder /open5gs/install/ /open5gs/install/
 
-# Add binaries to PATH
+COPY --from=builder /open5gs/install/ /open5gs/install/
 ENV PATH="/open5gs/install/bin:${PATH}"
 
-# Create log directory
 RUN mkdir -p /open5gs/install/var/log/open5gs
 
-# Default entrypoint (overridden per NF in compose)
 ENTRYPOINT ["/bin/bash", "-c"]
