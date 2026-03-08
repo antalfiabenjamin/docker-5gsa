@@ -1,0 +1,22 @@
+mcc: '001'
+mnc: '01'
+
+nci: '0x000000010'
+idLength: 32
+tac: 1
+
+linkIp: "::"
+ngapIp: "::"
+gtpIp: "::"
+
+# AMF address as seen from the RAN network
+amfConfigs:
+  - address: fd00:200::200
+    port: 38412
+
+# Supported S-NSSAIs
+slices:
+  - sst: 1
+
+# If false, gNB will not send GTP-U packets
+ignoreStreamIds: true

@@ -22,6 +22,7 @@ amf:
   ngap:
     server:
       - address: 10.200.0.200
+      - address: fd00:200::200
   metrics:
     server:
       - address: 0.0.0.0

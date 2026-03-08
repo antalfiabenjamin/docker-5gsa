@@ -92,6 +92,7 @@ services:
       5g-cn:
       5g-ran:
         ipv4_address: 10.200.0.200
+        ipv6_address: fd00:200::200
 
   fiveg-cn-smf:
     <<: *open5gs-common
